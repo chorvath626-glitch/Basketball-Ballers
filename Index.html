@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0d0f17">
+    <title>Phonk Dunkers: 2012 Bounce Hoops</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <main id="game-container">
+        <canvas id="gameCanvas" width="1280" height="720" aria-label="Basketball game court"></canvas>
+
+        <header id="hud" class="hidden">
+            <div class="score-card">
+                <span class="team-dot player-dot"></span>
+                <div><small>YOU</small><strong id="player-score">0</strong></div>
+            </div>
+            <div class="timer-card">
+                <small>MATCH TIME</small>
+                <strong id="match-timer">02:00</strong>
+            </div>
+            <div class="score-card bot-card">
+                <div><small>BOT</small><strong id="bot-score">0</strong></div>
+                <span class="team-dot bot-dot"></span>
+            </div>
+        </header>
+
+        <div id="score-banner" class="hidden" role="status">SWISH! THE CROWD IS FEELING IT!</div>
+
+        <section id="start-menu" class="overlay">
+            <div class="menu-card">
+                <p class="eyebrow">⚡ 2012 Bounce Edition ⚡</p>
+                <h1>PHONK<br>DUNKERS</h1>
+                <p class="intro">Take on the bot. Find your shot, cross your defender, and get the crowd moving.</p>
+                <div class="controls-guide">
+                    <p><kbd>A</kbd> <kbd>D</kbd> Move <span>·</span> <kbd>W</kbd> Jump</p>
+                    <p><kbd>↑</kbd> <kbd>↓</kbd> Aim <span>·</span> <kbd>Space</kbd> Shoot</p>
+                    <p><kbd>Shift</kbd> Crossover <span>·</span> <kbd>E</kbd> Behind-the-back</p>
+                    <p>Keep moving to dribble and set up your shot.</p>
+                </div>
+                <button id="start-button" class="primary-button">TIP OFF! 🏀</button>
+            </div>
+        </section>
+
+        <section id="end-overlay" class="overlay hidden">
+            <div class="menu-card">
+                <p class="eyebrow">MATCH CONCLUDED</p>
+                <h2 id="winner-text">YOU WIN!</h2>
+                <p class="final-score"><span id="final-player-score">0</span><span>—</span><span id="final-bot-score">0</span></p>
+                <button id="replay-button" class="primary-button">PLAY AGAIN 🔄</button>
+                <button id="menu-button" class="secondary-button">MAIN MENU</button>
+            </div>
+        </section>
+
+        <nav id="touch-controls" class="hidden" aria-label="Touch game controls">
+            <div class="touch-row">
+                <button data-key="KeyA" aria-label="Move left">◀</button>
+                <button data-key="KeyD" aria-label="Move right">▶</button>
+                <button data-key="ArrowUp" aria-label="Aim up">AIM +</button>
+                <button data-key="ArrowDown" aria-label="Aim down">AIM −</button>
+            </div>
+            <div class="touch-row">
+                <button data-key="KeyW">JUMP</button>
+                <button data-key="Space" class="shoot-button">SHOOT</button>
+                <button data-key="ShiftLeft" class="cross-button">CROSS</button>
+                <button data-key="KeyE" class="cross-button">BEHIND</button>
+            </div>
+        </nav>
+    </main>
+    <script src="game.js" defer></script>
+</body>
+</html>
