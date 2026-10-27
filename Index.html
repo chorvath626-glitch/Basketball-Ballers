@@ -19,6 +19,7 @@
             <div class="timer-card">
                 <small>MATCH TIME</small>
                 <strong id="match-timer">02:00</strong>
+                <small id="role-status">YOU ATTACK · BOT DEFENDS</small>
             </div>
             <div class="score-card bot-card">
                 <div><small>BOT</small><strong id="bot-score">0</strong></div>
@@ -32,12 +33,22 @@
             <div class="menu-card">
                 <p class="eyebrow">⚡ 2012 Bounce Edition ⚡</p>
                 <h1>PHONK<br>DUNKERS</h1>
-                <p class="intro">Take on the bot. Find your shot, cross your defender, and get the crowd moving.</p>
+                <p class="intro">Take on the bot in 2D. Face the basket, dribble past your defender, and get the crowd moving.</p>
+                <label class="player-picker" for="player-choice">PICK YOUR NBA STAR
+                    <select id="player-choice">
+                        <option value="curry">Stephen Curry</option>
+                        <option value="lebron">LeBron James</option>
+                        <option value="jordan">Michael Jordan</option>
+                        <option value="kobe">Kobe Bryant</option>
+                        <option value="giannis">Giannis Antetokounmpo</option>
+                    </select>
+                </label>
                 <div class="controls-guide">
-                    <p><kbd>A</kbd> <kbd>D</kbd> Move <span>·</span> <kbd>W</kbd> Jump</p>
-                    <p><kbd>↑</kbd> <kbd>↓</kbd> Aim <span>·</span> <kbd>Space</kbd> Shoot</p>
-                    <p><kbd>Shift</kbd> Crossover <span>·</span> <kbd>E</kbd> Behind-the-back</p>
-                    <p>Keep moving to dribble and set up your shot.</p>
+                    <p><kbd>A</kbd> <kbd>D</kbd> Move <span>·</span> Hold <kbd>R</kbd> to dribble <span>·</span> <kbd>W</kbd> Jump</p>
+                    <p><kbd>↑</kbd> <kbd>↓</kbd> Aim <span>·</span> Move mouse to aim <span>·</span> <kbd>Space</kbd> Shoot / Block</p>
+                    <p><kbd>Shift</kbd> Crossover <span>·</span> <kbd>E</kbd> Behind-the-back <span>·</span> <kbd>F</kbd> Dunk</p>
+                    <p><kbd>Q</kbd> Defensive steal <span>·</span> Two baskets, full-court action!</p>
+                    <p>At 1:00, switch sides: defend the bot while it shoots.</p>
                 </div>
                 <button id="start-button" class="primary-button">TIP OFF! 🏀</button>
             </div>
@@ -62,9 +73,12 @@
             </div>
             <div class="touch-row">
                 <button data-key="KeyW">JUMP</button>
+                <button data-key="KeyR" class="dribble-button">DRIBBLE</button>
                 <button data-key="Space" class="shoot-button">SHOOT</button>
                 <button data-key="ShiftLeft" class="cross-button">CROSS</button>
                 <button data-key="KeyE" class="cross-button">BEHIND</button>
+                <button data-key="KeyF" class="dunk-button">DUNK</button>
+                <button data-key="KeyQ" class="steal-button">STEAL</button>
             </div>
         </nav>
     </main>
