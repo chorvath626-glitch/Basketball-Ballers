@@ -11,11 +11,12 @@
     const crowd = [];
 
     const roster = {
-        curry: { name: 'STEPHEN CURRY', color: '#2563eb' },
-        lebron: { name: 'LEBRON JAMES', color: '#b91c1c' },
-        jordan: { name: 'MICHAEL JORDAN', color: '#dc2626' },
-        kobe: { name: 'KOBE BRYANT', color: '#7c3aed' },
-        giannis: { name: 'GIANNIS', color: '#15803d' }
+        curry: { name: 'STEPHEN CURRY', color: '#2563eb', accent: '#facc15', number: '30', pattern: 'stripes' },
+        lebron: { name: 'LEBRON JAMES', color: '#6d28d9', accent: '#facc15', number: '23', pattern: 'crown' },
+        jordan: { name: 'MICHAEL JORDAN', color: '#b91c1c', accent: '#111827', number: '23', pattern: 'chevrons' },
+        kobe: { name: 'KOBE BRYANT', color: '#7c3aed', accent: '#facc15', number: '24', pattern: 'slashes' },
+        giannis: { name: 'GIANNIS', color: '#15803d', accent: '#ec4899', number: '34', pattern: 'blocks' },
+        mrt: { name: 'MR. T', color: '#111827', accent: '#fbbf24', number: '1', pattern: 'diamond', mrT: true }
     };
     const player = createPlayer(245, '#2563eb', 'YOU', 48 * Math.PI / 180);
     const bot = createPlayer(830, '#3b82f6', 'BOT', 54 * Math.PI / 180);
@@ -33,7 +34,8 @@
         return {
             x, y: floorY, vx: 0, vy: 0, color, name, angle, defaultAngle: angle,
             ball: { x: 0, y: 0, vx: 0, vy: 0, launched: false, age: 0, previousX: 0, previousY: 0 },
-            dribblePhase: 0, crossover: 0, moveType: 'crossover', shootPose: 0,
+            dribblePhase: 0, crossover: 0, moveType: 'crossover', shootPose: 0, renderLean: 0,
+            jerseyPattern: 'stripes', jerseyNumber: '00', jerseyAccent: '#ffffff', mrT: false,
             blockTimer: 0, blockCooldown: 0, stealCooldown: 0, stealStun: 0, grounded: true, botShotTimer: 2.4
         };
     }
@@ -46,6 +48,7 @@
         p.dribblePhase = 0;
         p.crossover = 0;
         p.moveType = 'crossover';
+        p.renderLean = 0;
         p.angle = p.defaultAngle;
         p.shootPose = 0;
         p.blockTimer = 0;
@@ -124,6 +127,14 @@
         const selectedPlayer = roster[playerChoice.value];
         player.name = selectedPlayer.name;
         player.color = selectedPlayer.color;
+        player.jerseyAccent = selectedPlayer.accent;
+        player.jerseyNumber = selectedPlayer.number;
+        player.jerseyPattern = selectedPlayer.pattern;
+        player.mrT = Boolean(selectedPlayer.mrT);
+        bot.jerseyAccent = '#93c5fd';
+        bot.jerseyNumber = '9';
+        bot.jerseyPattern = 'slashes';
+        bot.mrT = false;
         resetPlayer(player, 245);
         resetPlayer(bot, 830);
         startMenu.classList.add('hidden');
@@ -238,7 +249,8 @@
         if (p === player) {
             playerScore++;
             playerScoreEl.textContent = playerScore;
-            scoreBanner.textContent = 'SWISH! THE CROWD IS FEELING IT!';
+            scoreBanner.textContent = 'YAY MR. T! THE CROWD IS FEELING IT!';
+            sayMrT();
         } else {
             botScore++;
             botScoreEl.textContent = botScore;
@@ -252,6 +264,15 @@
         p.ball.age = 0;
         p.shootPose = 0.25;
         playScoreSound();
+    }
+
+    function sayMrT() {
+        if (!('speechSynthesis' in window)) return;
+        window.speechSynthesis.cancel();
+        const phrase = new SpeechSynthesisUtterance('Yay Mr. T');
+        phrase.rate = 0.95;
+        phrase.pitch = 1.08;
+        window.speechSynthesis.speak(phrase);
     }
 
     function playScoreSound() {
@@ -290,6 +311,8 @@
         p.x += p.vx * seconds;
         p.y += p.vy * seconds;
         p.vx *= Math.pow(0.9, seconds);
+        const targetLean = clamp(-p.vx / 6000, -0.065, 0.065);
+        p.renderLean += (targetLean - p.renderLean) * (1 - Math.exp(-seconds * 15));
         const maxSpeed = p === player
             ? (playerOffense ? 270 : 360)
             : (playerOffense ? 330 : 220);
@@ -325,14 +348,17 @@
             return;
         }
 
-        const boardHit = b.y > 190 && b.y < 315 &&
+        const boardThickness = 14;
+        const entersBackboard = b.y > 190 && b.y < 315 &&
             (hoop.direction > 0
-                ? b.previousX < hoop.boardX && b.x >= hoop.boardX
-                : b.previousX > hoop.boardX && b.x <= hoop.boardX);
-        if (boardHit) {
-            b.x = hoop.boardX - hoop.direction * 13;
+                ? b.previousX <= hoop.boardX && b.x >= hoop.boardX
+                : b.previousX >= hoop.boardX && b.x <= hoop.boardX);
+        if (entersBackboard) {
+            // Place the ball just in front of the board instead of letting it
+            // cross behind the painted surface, where it can look invisible.
+            b.x = hoop.boardX - hoop.direction * (boardThickness + 12);
             b.vx = -b.vx * 0.68;
-            b.vy -= 1.5;
+            b.vy = Math.min(b.vy - 1.5, 9);
         }
 
         if (b.age > 3.8 || b.y > floorY + 80 || b.x > 1270 || b.x < 0) {
@@ -382,7 +408,7 @@
             if (playerOffense) {
                 player.moveType = 'behind';
                 player.crossover = 0.9;
-                player.vx += 220;
+                player.vx += attackHoop().direction * 170;
             } else {
                 player.vx += (bot.x < player.x ? -1 : 1) * 320;
             }
@@ -390,7 +416,7 @@
             if (playerOffense) {
                 player.moveType = 'crossover';
                 player.crossover = 0.65;
-                player.vx += 380;
+                player.vx += attackHoop().direction * 170;
             } else {
                 player.vx += (bot.x < player.x ? -1 : 1) * 240;
             }
@@ -629,7 +655,7 @@
         ctx.save();
         ctx.translate(p.x, feet);
         ctx.scale(facing, 1);
-        if (moving) ctx.rotate(clamp(-p.vx / 6000, -0.1, 0.1));
+        if (moving) ctx.rotate(p.renderLean);
 
         ctx.fillStyle = '#0006';
         ctx.beginPath();
@@ -649,14 +675,7 @@
         ctx.fillRect(-20 + legSwing, -8, 17, 7);
         ctx.fillRect(4 - legSwing, -8, 17, 7);
 
-        ctx.fillStyle = p.color;
-        ctx.beginPath();
-        ctx.moveTo(-17, -69);
-        ctx.lineTo(17, -69);
-        ctx.lineTo(14, -27);
-        ctx.lineTo(-14, -27);
-        ctx.closePath();
-        ctx.fill();
+        drawJersey(p);
 
         ctx.strokeStyle = '#d9a17d';
         ctx.lineWidth = 7;
@@ -670,11 +689,24 @@
         ctx.beginPath();
         ctx.arc(0, -84, 15, 0, Math.PI * 2);
         ctx.fill();
-        ctx.fillStyle = '#1f2937';
+        ctx.fillStyle = p.mrT ? '#8b5a32' : '#1f2937';
         ctx.beginPath();
         ctx.arc(0, -89, 15, Math.PI, Math.PI * 2);
         ctx.fill();
-        ctx.fillRect(-15, -90, 30, 5);
+        ctx.fillRect(-15, -90, 30, p.mrT ? 8 : 5);
+        if (p.mrT) {
+            ctx.strokeStyle = '#8b5a32';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(-9, -97);
+            ctx.lineTo(-7, -103);
+            ctx.lineTo(-3, -98);
+            ctx.lineTo(1, -104);
+            ctx.lineTo(5, -98);
+            ctx.lineTo(9, -103);
+            ctx.lineTo(11, -96);
+            ctx.stroke();
+        }
         ctx.fillStyle = '#111827';
         ctx.beginPath();
         ctx.arc(6, -84, 1.5, 0, Math.PI * 2);
@@ -700,6 +732,67 @@
                 : hand.y;
             drawBall(hand.x, ballY - bob, 12, time * 5);
         }
+    }
+
+    function drawJersey(p) {
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.moveTo(-17, -69);
+        ctx.lineTo(17, -69);
+        ctx.lineTo(14, -27);
+        ctx.lineTo(-14, -27);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(-17, -69);
+        ctx.lineTo(17, -69);
+        ctx.lineTo(14, -27);
+        ctx.lineTo(-14, -27);
+        ctx.clip();
+        ctx.strokeStyle = p.jerseyAccent;
+        ctx.fillStyle = p.jerseyAccent;
+        ctx.lineWidth = 4;
+        if (p.jerseyPattern === 'stripes') {
+            ctx.beginPath();
+            ctx.moveTo(-20, -62); ctx.lineTo(20, -62);
+            ctx.moveTo(-20, -54); ctx.lineTo(20, -54);
+            ctx.stroke();
+        } else if (p.jerseyPattern === 'crown') {
+            ctx.beginPath();
+            ctx.moveTo(-13, -61); ctx.lineTo(-9, -68); ctx.lineTo(-4, -61);
+            ctx.lineTo(1, -68); ctx.lineTo(6, -61); ctx.lineTo(13, -68);
+            ctx.lineTo(13, -59); ctx.closePath(); ctx.fill();
+        } else if (p.jerseyPattern === 'chevrons') {
+            ctx.beginPath();
+            ctx.moveTo(-19, -58); ctx.lineTo(-9, -48); ctx.lineTo(1, -58);
+            ctx.moveTo(-1, -58); ctx.lineTo(9, -48); ctx.lineTo(19, -58);
+            ctx.stroke();
+        } else if (p.jerseyPattern === 'slashes') {
+            for (let x = -22; x < 24; x += 10) {
+                ctx.beginPath(); ctx.moveTo(x, -67); ctx.lineTo(x + 18, -27); ctx.stroke();
+            }
+        } else if (p.jerseyPattern === 'blocks') {
+            ctx.fillRect(-14, -64, 28, 7);
+            ctx.fillStyle = p.color;
+            ctx.fillRect(-4, -64, 8, 7);
+            ctx.fillStyle = p.jerseyAccent;
+            ctx.fillRect(-14, -34, 28, 7);
+        } else {
+            ctx.beginPath();
+            ctx.moveTo(0, -68); ctx.lineTo(13, -52); ctx.lineTo(0, -36);
+            ctx.lineTo(-13, -52); ctx.closePath(); ctx.fill();
+            ctx.strokeStyle = p.color;
+            ctx.beginPath(); ctx.moveTo(0, -64); ctx.lineTo(0, -40); ctx.stroke();
+        }
+        ctx.restore();
+
+        ctx.fillStyle = '#fff';
+        ctx.font = '900 14px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(p.jerseyNumber, 0, -43);
     }
 
     function drawBall(x, y, radius, rotation) {
